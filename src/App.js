@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createChart } from 'lightweight-charts';
 import * as LightweightCharts from "lightweight-charts";
+import './App.css';
+
 
 function TradingTerminal() {
     const [takeProfit, setTakeProfit] = useState('');
@@ -101,21 +103,26 @@ function TradingTerminal() {
     const stopLossPrice = 140; // Adjust this value
 
     return (
-        <div>
+        <div className="container">
+            <div className="chart-container" ref={chartRef} id="chart"></div>
             <div className="form-container">
                 <form id="orderForm">
                     <select id="coinSelect">
                         <option value="BTC">BTC</option>
-                        {/* Add other coins as needed */}
+
                     </select>
-                    <input type="number" value={takeProfit} onChange={e => setTakeProfit(e.target.value)} placeholder="Take Profit Price" />
-                    <input type="number" value={stopLoss} onChange={e => setStopLoss(e.target.value)} placeholder="Stop Loss Price" />
-                    <input type="number" value={limitOrder} onChange={e => setLimitOrder(e.target.value)} placeholder="Limit Order Price" />
+                    <input type="number" value={takeProfit} onChange={e => setTakeProfit(e.target.value)}
+                           placeholder="Take Profit Price"/>
+                    <input type="number" value={stopLoss} onChange={e => setStopLoss(e.target.value)}
+                           placeholder="Stop Loss Price"/>
+                    <input type="number" value={limitOrder} onChange={e => setLimitOrder(e.target.value)}
+                           placeholder="Limit Order Price"/>
                     <button type="button" onClick={placeOrder}>Place Order</button>
                 </form>
             </div>
-            <div ref={chartRef} id="chart" style={{width: '100%', height: '600px'}}></div>
         </div>
+
+
     );
 }
 
