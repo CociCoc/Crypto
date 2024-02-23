@@ -1,38 +1,55 @@
-.App {
-  text-align: center;
+.container {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  background-color: #434653; /* Dark background color */
+  color: #fff; /* Light text color */
+  justify-content: center; /* Center the form horizontally */
+  align-items: center; /* Center the form vertically */
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.chart-container {
+  flex: 1; /* Adjusted to take 90% of the space */
+  height: 100%;
+
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.form-container {
+  width: 200px; /* Fixed width for the form container */
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  align-items: center; /* Center items horizontally */
+  justify-content: center; /* Center items vertically */
+  padding: 20px; /* Add padding */
+  margin: 5px;
+  background-color: #4b4c5b; /* background for form container */
+  border-radius: 10px; /* Rounded corners */
 }
 
-.App-link {
-  color: #61dafb;
+/* Input fields */
+input, select {
+  background-color: #444; /* Darker background for input fields */
+  color: #fff; /* Light text color */
+  border: 1px solid #666; /* Darker border color */
+  margin-bottom: 10px; /* Add margin between inputs */
+  padding: 8px; /* Add padding to inputs */
+  width: 100%; /* Set input width to 100% */
+  border-radius: 5px; /* Rounded corners */
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Button */
+button {
+  background-color: #b76160; /* Blue color for button */
+  color: #fff; /* Light text color */
+  border: none;
+  padding: 8px 16px;
+  margin: 2px;
+  cursor: pointer;
+  width: 100%; /* Set button width to 100% */
+  border-radius: 5px; /* Rounded corners */
+}
+
+/* Button hover effect */
+button:hover {
+  background-color: #a55453; /* Darker blue on hover */
 }
