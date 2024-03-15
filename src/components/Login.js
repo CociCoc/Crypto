@@ -66,7 +66,7 @@ export default function Login(props) {
                     console.log("access", response.data["access_token"]);
 
                     console.log("local storage", localStorage.getItem("access"));
-                    window.location.href = "/home";
+                    window.location.href = "/Profile";
 
                 }
             })
