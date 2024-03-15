@@ -59,6 +59,8 @@ function RegisterUser() {
         } catch (error) {
             setMessage('An error occurred. Please try again later.');
         }
+
+
     };
 
     return (

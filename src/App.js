@@ -10,6 +10,10 @@ import MenuIcon from '@mui/icons-material/Menu';
 
 
 function App() {
+
+    const access = localStorage.getItem("accessToken");
+    console.log("access", access)
+
     return (
         <Box sx={{ flexGrow: 1 }}>
             <AppBar position="static">
@@ -31,6 +35,8 @@ function App() {
             </AppBar>
         </Box>
     );
+
+
 }
 
 export default App;

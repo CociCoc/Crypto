@@ -12,9 +12,7 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-
-import axios from 'axios';
-
+import axios from "axios";
 
 
 function Copyright(props) {
@@ -32,14 +30,59 @@ function Copyright(props) {
 
 const defaultTheme = createTheme();
 
-const Login = () => {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
+const login_url = "http://localhost:8000/token/";
 
-    const handleLogin = async (event) => {
+export default function Login(props) {
+
+    const [data, setData] = useState({
+        username: "",
+        password: "",
+    });
 
 
+    const handleChange = (e) => {
+        const value = e.target.value;
+        setData({
+            ...data,
+            [e.target.name]: value,
+        });
     };
+
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        const userData = {
+            username: data.username,
+            password: data.password,
+        };
+        axios
+            .post(login_url, userData)
+            .then((response) => {
+                if (response.status === 200) {
+                    localStorage.setItem("accessToken", response.data["access_token"]);
+
+                    console.log(response.status);
+                    console.log(response.data);
+                    console.log("access", response.data["access_token"]);
+
+                    console.log("local storage", localStorage.getItem("access"));
+                    window.location.href = "/home";
+
+                }
+            })
+            .catch((error) => {
+                if (error.response) {
+                    console.log(error.response);
+                    console.log("server responded");
+
+                } else if (error.request) {
+                    console.log("network error");
+                } else {
+                    console.log(error);
+                }
+            });
+    };
+
 
 
 
@@ -62,7 +105,7 @@ return (
                 <Typography component="h1" variant="h5">
                     Sign in
                 </Typography>
-                <Box component="form" onSubmit={handleLogin} noValidate sx={{ mt: 1 }}>
+                <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
                     <Grid container spacing={2}>
                     <Grid item xs={12} >
                         <TextField
@@ -73,8 +116,8 @@ return (
                             id="username"
                             label="username"
                             autoFocus
-                            value={username} // Set the value to the state variable
-                            onChange={(event) => setUsername(event.target.value)} // Update state on change
+                            value={data.username}
+                            onChange={handleChange}
                         />
                     </Grid>
                     <Grid item xs={12}>
@@ -83,12 +126,12 @@ return (
                             fullWidth
                             name="password"
                             label="Password"
-                            type="password"
+                            type={"password"}
                             id="password"
                             autoComplete="new-password"
                             autoFocus
-                            value={password} // Set the value to the state variable
-                            onChange={(event) => setPassword(event.target.value)} // Update state on change
+                            value={data.password}
+                            onChange={handleChange}
                         />
 
                     </Grid>
@@ -125,6 +168,6 @@ return (
 );
 }
 
-export default Login
+
 
 
