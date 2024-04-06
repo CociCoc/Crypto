@@ -2,10 +2,50 @@ import React, { useEffect, useRef, useState } from "react";
 import { ColorType, createChart } from "lightweight-charts";
 import "../App.css";
 import * as lightweightCharts from "lightweight-charts";
+import TextField from '@mui/material/TextField';
+import Autocomplete from '@mui/material/Autocomplete';
+import {Stack} from "@mui/material";
+import Box from "@mui/material/Box";
+
+// Function for fetching pairs from the endpoint
+async function fetchPairs() {
+    const accessToken = localStorage.getItem("accessToken"); // Retrieve from local storage
+
+    const response = await fetch('http://localhost:8000/pairs/', {
+        method: 'GET',
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error(`Error fetching pairs: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
+}
 
 function Chart() {
     const chartContainerRef = useRef();
+    const [pairs, setPairs] = useState([]); // State for available pairs
+    const [selectedPair, setSelectedPair] = useState(null); // State for selected pair
     const [candlePrice, setCandlePrice] = useState(null);
+
+    useEffect(() => {
+        // Fetch pairs on component mount
+        const fetchData = async () => {
+            try {
+                const fetchedPairs = await fetchPairs();
+                setPairs(fetchedPairs);
+            } catch (error) {
+                console.error('Error fetching pairs:', error);
+                // Handle error appropriately, e.g., display an error message
+            }
+        };
+
+        fetchData();
+    }, []);
 
     useEffect(() => {
         const chart = createChart(chartContainerRef.current);
@@ -46,25 +86,35 @@ function Chart() {
             wickDownColor: "#ef5350",
         });
 
-        fetch(process.env.PUBLIC_URL + "/data.json")
-            .then((response) => response.json())
-            .then((data) => {
-                newSeries.setData(data);
-            })
-            .catch((error) => {
-                console.error("Error fetching data:", error);
-            });
+        // Update chart data based on selected pair
+        if (selectedPair) {
+            const fetchDataForPair = async () => {
+                const response = await fetch(`http://localhost:8000/data/${selectedPair}/?start=-30d`, {
+                    method: 'GET',
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+                    },
+                });
 
-        chart.priceScale("right").applyOptions({
-            borderColor: "#71649c",
-        });
-        chart.timeScale().applyOptions({
-            borderColor: "#71649c",
-            rightOffset: 15,
-            barSpacing: 15,
-            fixLeftEdge: true,
-            timeVisible: true,
-        });
+                if (!response.ok) {
+                    throw new Error(`Error fetching data for ${selectedPair}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+
+                for (let key in data) {
+
+                    const date = new Date(data[key].time);
+                    const timestampInMilliseconds = date.getTime();
+                    data[key].time = timestampInMilliseconds
+
+                }
+                newSeries.setData(data);
+            };
+
+            fetchDataForPair();
+        }
 
         chart.subscribeCrosshairMove((param) => {
             if (param.time) {
@@ -87,21 +137,31 @@ function Chart() {
             chart.remove();
             window.removeEventListener("resize", handleResize);
         };
-    }, []);
-
+    }, [selectedPair]); // Re-render chart and fetch data on selectedPair change
 
     const logParam = (param) => {
-        console.log(param);
+        //console.log(param);
     };
+
+    const options = pairs.map((pair) => pair);
+
+    const [value] = React.useState(selectedPair);
+
+    const handleChange = (event, newValue) => {
+        // Update your state using the newValue provided by the Autocomplete component
+        setSelectedPair(newValue);
+    };
+
+
+
 
     return (
         <div ref={chartContainerRef} style={{ position: "relative" }}>
             <div
                 style={{
-                    position: "absolute",
+                    position: "relative",
                     top: 20,
                     left: 100,
-                    zIndex: 20,
                     color: "white",
                 }}
             >
@@ -113,9 +173,29 @@ function Chart() {
                     <div style={{ marginRight: 10 }}>CLOSE: {candlePrice?.close}</div>
                 </div>
             </div>
+            <div>
+                <Box sx = {{display: 'flex',
+                    justifyContent: 'center',}}>
+                    <Box >
+                        <Autocomplete
+                            sx = {{
+                                width: 300,
+                                bgcolor: '#fff',
+
+
+                            }}
+                            disablePortal
+                            value={value}
+                            onChange={handleChange}
+                            id="combo-box-demo"
+                            options={options}
+                            renderInput={(params) => <TextField {...params} label="Select Pair" />}
+                        />
+                    </Box>
+                </Box>
+            </div>
         </div>
     );
 }
 
-export default Chart
-
+export default Chart;

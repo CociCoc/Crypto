@@ -21,7 +21,7 @@ function Copyright(props) {
         <Typography variant="body2" color="text.secondary" align="center" {...props}>
             {'Copyright © '}
             <Link color="inherit" href="/">
-                GGGdemocracy
+                Crypro
             </Link>{' '}
             {new Date().getFullYear()}
             {'.'}
@@ -90,9 +90,9 @@ const Profile = () => {
                             <MenuIcon />
                         </IconButton>
                         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                            GGGdemocracy
+                            Crypto
                         </Typography>
-                        <Button color="inherit" href="/login">Login</Button>
+                        <Button color="inherit" href="/chart">Chart</Button>
                     </Toolbar>
                 </AppBar>
                 <Container component="main" maxWidth="xs" sx={{marginTop:8,}}>

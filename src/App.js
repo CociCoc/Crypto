@@ -28,7 +28,7 @@ function App() {
                         <MenuIcon />
                     </IconButton>
                     <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                        GGGdemocracy
+                        Crypto
                     </Typography>
                     <Button color="inherit" href="/login">Login</Button>
                 </Toolbar>
