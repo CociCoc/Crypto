@@ -1,15 +1,6 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
-import reportWebVitals from './reportWebVitals';
-import TradingTerminal from "./App";
+import ReactDOM from 'react-dom/client';
+import { router } from './router';
 
-ReactDOM.render(
-    <React.StrictMode>
-        <TradingTerminal />
-    </React.StrictMode>,
-    document.getElementById('root')
-);
-
-reportWebVitals();
-
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(router());
