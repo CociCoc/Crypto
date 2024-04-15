@@ -4,7 +4,6 @@ import "../App.css";
 import * as lightweightCharts from "lightweight-charts";
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
-import {Stack} from "@mui/material";
 import Box from "@mui/material/Box";
 
 // Function for fetching pairs from the endpoint
@@ -102,14 +101,12 @@ function Chart() {
 
                 const data = await response.json();
 
-
                 for (let key in data) {
-
                     const date = new Date(data[key].time);
                     const timestampInMilliseconds = date.getTime();
-                    data[key].time = timestampInMilliseconds
-
+                    data[key].time = timestampInMilliseconds;
                 }
+
                 newSeries.setData(data);
             };
 
@@ -117,9 +114,29 @@ function Chart() {
         }
 
         chart.subscribeCrosshairMove((param) => {
-            if (param.time) {
+            if (param.time && param.point.x <= 0) {
                 const data = param.seriesData.get(newSeries);
-                setCandlePrice(data);
+
+                const fetchDataForOneDayBack = async () => {
+                    const response = await fetch(`http://localhost:8000/data/${selectedPair}/?start=-1d&end=-30d`, {
+                        method: 'GET',
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+                        },
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Error fetching additional data for ${selectedPair}: ${response.statusText}`);
+                    }
+
+                    const newData = await response.json();
+
+                    const combinedData = [...newData, ...data];
+
+                    newSeries.setData(combinedData);
+                };
+
+                fetchDataForOneDayBack();
             }
 
             logParam(param);
@@ -152,9 +169,6 @@ function Chart() {
         setSelectedPair(newValue);
     };
 
-
-
-
     return (
         <div ref={chartContainerRef} style={{ position: "relative" }}>
             <div
@@ -181,8 +195,6 @@ function Chart() {
                             sx = {{
                                 width: 300,
                                 bgcolor: '#fff',
-
-
                             }}
                             disablePortal
                             value={value}
