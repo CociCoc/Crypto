@@ -27,12 +27,12 @@ async function fetchPairs() {
 
 function Chart() {
     const chartContainerRef = useRef();
-    const [pairs, setPairs] = useState([]); // State for available pairs
-    const [selectedPair, setSelectedPair] = useState(null); // State for selected pair
+    const [pairs, setPairs] = useState([]);
+    const [selectedPair, setSelectedPair] = useState(null);
     const [candlePrice, setCandlePrice] = useState(null);
-
+    const [data2, setData2] = useState([]);
     useEffect(() => {
-        // Fetch pairs on component mount
+
         const fetchData = async () => {
             try {
                 const fetchedPairs = await fetchPairs();
@@ -85,62 +85,118 @@ function Chart() {
             wickDownColor: "#ef5350",
         });
 
+
+
         // Update chart data based on selected pair
         if (selectedPair) {
             const fetchDataForPair = async () => {
-                const response = await fetch(`http://localhost:8000/data/${selectedPair}/?start=-30d`, {
-                    method: 'GET',
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-                    },
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Error fetching data for ${selectedPair}: ${response.statusText}`);
-                }
-
-                const data = await response.json();
-
-                for (let key in data) {
-                    const date = new Date(data[key].time);
-                    const timestampInMilliseconds = date.getTime();
-                    data[key].time = timestampInMilliseconds;
-                }
-
-                newSeries.setData(data);
-            };
-
-            fetchDataForPair();
-        }
-
-        chart.subscribeCrosshairMove((param) => {
-            if (param.time && param.point.x <= 0) {
-                const data = param.seriesData.get(newSeries);
-
-                const fetchDataForOneDayBack = async () => {
-                    const response = await fetch(`http://localhost:8000/data/${selectedPair}/?start=-1d&end=-30d`, {
+                try {
+                    // Fetch historical data
+                    const historicalResponse = await fetch(`http://localhost:8000/data/${selectedPair}/?start=-30d`, {
                         method: 'GET',
                         headers: {
                             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
                         },
                     });
 
-                    if (!response.ok) {
-                        throw new Error(`Error fetching additional data for ${selectedPair}: ${response.statusText}`);
+                    if (!historicalResponse.ok) {
+                        throw new Error(`Error fetching data for ${selectedPair}: ${historicalResponse.statusText}`);
                     }
 
-                    const newData = await response.json();
+                    const rawData = await historicalResponse.json();
 
-                    const combinedData = [...newData, ...data];
+                    // Parse time strings to Date objects
+                    const data = rawData.map(item => ({
+                        ...item,
+                        time: new Date(item.time).getTime() / 1000
+                    }));
 
-                    newSeries.setData(combinedData);
-                };
+                    // Sort data by time in ascending order
+                    data.sort((a, b) => a.time - b.time);
 
-                fetchDataForOneDayBack();
-            }
+                    setData2(data);
+                    newSeries.setData(data);
 
-            logParam(param);
-        });
+                    // Fetch points data
+                    const pointsResponse = await fetch(`http://localhost:8000/points/?pair=${selectedPair}`, {
+                        method: 'GET',
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+                        },
+                    });
+
+                    if (!pointsResponse.ok) {
+                        throw new Error(`Error fetching points for ${selectedPair}: ${pointsResponse.statusText}`);
+                    }
+
+                    const pointsData = await pointsResponse.json();
+
+                    if (!pointsData[selectedPair]) {
+                        throw new Error(`No data available for selected pair: ${selectedPair}`);
+                    }
+
+                    const drawPoints = pointsData[selectedPair].draw_points;
+
+                    if (!drawPoints) {
+                        throw new Error(`No draw points available for selected pair: ${selectedPair}`);
+                    }
+
+                    // Extract and plot LevelsLinesOfResistanceLong
+                    const levelsLines = drawPoints.LevelsLinesOfResistanceLong;
+                    if (levelsLines && levelsLines.data) {
+                        const levelsData = levelsLines.data.flatMap(points =>
+                            points.map(([time, value]) => ({
+                                time: new Date(time).getTime() / 1000, // Parse time string to milliseconds since epoch
+                                value: Number(value)
+                            }))
+                        );
+
+                        console.log("LevelsLinesOfResistanceLong data:", levelsData); // Log data before adding to chart
+
+                        const levelsLineSeries = chart.addLineSeries({
+                            lastValueVisible: false,
+                            color: levelsLines.color
+                        });
+
+                        levelsLineSeries.setData(levelsData);
+                    } else {
+                        console.warn(`LevelsLinesOfResistanceLong data is not available for selected pair: ${selectedPair}`);
+                    }
+
+                    // Extract and plot CurveLinesOfResistanceLong
+                    const curveLines = drawPoints.CurveLinesOfResistanceLong;
+                    if (curveLines && curveLines.data) {
+                        const curveData = curveLines.data.flatMap(points =>
+                            points.map(([time, value]) => ({
+                                time: new Date(time).getTime() / 1000, // Parse time string to milliseconds since epoch
+                                value: Number(value)
+                            }))
+                        );
+
+                        console.log("CurveLinesOfResistanceLong data:", curveData); // Log data before adding to chart
+
+                        const curvedLineSeries = chart.addLineSeries({
+                            lastValueVisible: false,
+                            lineType: 2, // LineType.Curved
+                            color: curveLines.color
+                        });
+
+                        curvedLineSeries.setData(curveData);
+                    } else {
+                        console.warn(`CurveLinesOfResistanceLong data is not available for selected pair: ${selectedPair}`);
+                    }
+
+                } catch (error) {
+                    console.error(error);
+                }
+            };
+
+            fetchDataForPair();
+        }
+
+
+
+
 
         const handleResize = () => {
             chart.applyOptions({
@@ -168,6 +224,8 @@ function Chart() {
         // Update your state using the newValue provided by the Autocomplete component
         setSelectedPair(newValue);
     };
+
+
 
     return (
         <div ref={chartContainerRef} style={{ position: "relative" }}>
